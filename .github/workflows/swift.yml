@@ -16,14 +16,28 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
+    - name: Check HAL Plugins
+      run: ls /Library/Audio/Plug-Ins/HAL
+
+    - name: Check Audio
+      run: system_profiler SPAudioDataType
+
     - name: Install NullAudio.driver
-      run: sudo unzip Tests/Extras/NullAudio.driver.zip -d /Library/Audio/Plug-Ins/HAL
+      run: |
+        sudo unzip Tests/Extras/NullAudio.driver.zip -d /Library/Audio/Plug-Ins/HAL
+        sudo rm -fr /Library/Audio/Plug-Ins/HAL/__MACOSX
+
+    - name: Check HAL Plugins
+      run: ls /Library/Audio/Plug-Ins/HAL
 
     - name: Restart Core Audio
-      run: sudo launchctl kickstart -kp system/com.apple.audio.coreaudiod
+      run: |
+        sudo launchctl kickstart -kp system/com.apple.audio.coreaudiod
+        sleep 3
+        sudo launchctl list
 
     - name: Check Null Audio Device is present
-      run: system_profiler SPAudioDataType | grep -c "Null Audio Device"
+      run: system_profiler SPAudioDataType
 
     - name: Build
       run: swift build
