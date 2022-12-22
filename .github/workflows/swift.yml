@@ -11,15 +11,22 @@ jobs:
 
     runs-on: macos-latest
 
+    timeout-minutes: 5
+
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
+
     - name: Install NullAudio.driver
       run: sudo unzip Tests/Extras/NullAudio.driver.zip -d /Library/Audio/Plug-Ins/HAL
+
     - name: Restart Core Audio
-      run: sudo launchctl kill KILL system/com.apple.audio.coreaudiod      
+      run: sudo launchctl kickstart -kp system/com.apple.audio.coreaudiod
+
     - name: Check Null Audio Device is present
       run: system_profiler SPAudioDataType | grep -c "Null Audio Device"
+
     - name: Build
       run: swift build
+
     - name: Run tests
       run: swift test
