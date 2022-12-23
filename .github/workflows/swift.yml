@@ -25,7 +25,9 @@ jobs:
       run: system_profiler SPAudioDataType
 
     - name: Install NullAudio.driver
-      run: sudo unzip Tests/Extras/NullAudio.driver.zip -d /Library/Audio/Plug-Ins/HAL
+      run: |
+        cd Tests/Extras/NullAudio
+        sudo xcodebuild -target NullAudio -destination 'generic/platform=macOS' install DSTROOT=/
 
     - name: Check HAL Plugins
       run: |
