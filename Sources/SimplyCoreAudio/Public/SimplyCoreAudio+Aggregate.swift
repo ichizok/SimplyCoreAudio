@@ -26,14 +26,17 @@ public extension SimplyCoreAudio {
                                subDevices: [AudioDevice],
                                named name: String,
                                uid: String,
-                               option: AggregateOption?) -> AudioDevice?
+                               option: AggregateOption? = nil) -> AudioDevice?
     {
         guard let mainDeviceUID = mainDevice.uid else { return nil }
 
         // make sure same device isn't added twice
         let deviceUIDs = Set([mainDeviceUID] + subDevices.compactMap { $0.uid })
         let deviceList: [[String: Any]] = deviceUIDs.map {
-            [kAudioSubDeviceUIDKey: $0]
+            [
+                kAudioSubDeviceUIDKey: $0,
+                kAudioSubDeviceDriftCompensationKey: $0 == mainDeviceUID ? 0 : 1,
+            ]
         }
 
         let desc: [String: Any] = [
@@ -65,7 +68,7 @@ public extension SimplyCoreAudio {
         if let secondDevice = secondDevice {
             subDevices.append(secondDevice)
         }
-        return createAggregateDevice(mainDevice: mainDevice, subDevices: subDevices, named: name, uid: uid, option: nil)
+        return createAggregateDevice(mainDevice: mainDevice, subDevices: subDevices, named: name, uid: uid)
     }
     
     @available(*, deprecated, message: "mainDevice: is preferred spelling for first argument")
