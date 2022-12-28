@@ -13,33 +13,36 @@ import os.log
 // MARK: - Create and Destroy Aggregate Devices
 
 public extension SimplyCoreAudio {
+    /// The composition of Addregate Device
+    typealias AggregateOption = (isPrivate: Bool, isStacked: Bool)
+
     /// This routine creates a new aggregate audio device.
     ///
     /// - Parameter mainDevice: An audio device. This will also be the clock source.
-    /// - Parameter secondDevice: An audio device.
+    /// - Parameter subDevices: Audio devices.
     ///
     /// - Returns *(optional)* An aggregate `AudioDevice` if one can be created.
     func createAggregateDevice(mainDevice: AudioDevice,
-                               secondDevice: AudioDevice?,
+                               subDevices: [AudioDevice],
                                named name: String,
-                               uid: String) -> AudioDevice?
+                               uid: String,
+                               option: AggregateOption?) -> AudioDevice?
     {
         guard let mainDeviceUID = mainDevice.uid else { return nil }
 
-        var deviceList: [[String: Any]] = [
-            [kAudioSubDeviceUIDKey: mainDeviceUID]
-        ]
-
         // make sure same device isn't added twice
-        if let secondDeviceUID = secondDevice?.uid, secondDeviceUID != mainDeviceUID {
-            deviceList.append([kAudioSubDeviceUIDKey: secondDeviceUID])
+        let deviceUIDs = Set([mainDeviceUID] + subDevices.compactMap { $0.uid })
+        let deviceList: [[String: Any]] = deviceUIDs.map {
+            [kAudioSubDeviceUIDKey: $0]
         }
 
         let desc: [String: Any] = [
             kAudioAggregateDeviceNameKey: name,
             kAudioAggregateDeviceUIDKey: uid,
             kAudioAggregateDeviceSubDeviceListKey: deviceList,
-            kAudioAggregateDeviceMainSubDeviceKey: mainDeviceUID
+            kAudioAggregateDeviceMainSubDeviceKey: mainDeviceUID,
+            kAudioAggregateDeviceIsPrivateKey: option?.isPrivate ?? false,
+            kAudioAggregateDeviceIsStackedKey: option?.isStacked ?? false,
         ]
 
         var deviceID: AudioDeviceID = 0
@@ -53,6 +56,18 @@ public extension SimplyCoreAudio {
         return AudioDevice.lookup(by: deviceID)
     }
     
+    func createAggregateDevice(mainDevice: AudioDevice,
+                               secondDevice: AudioDevice?,
+                               named name: String,
+                               uid: String) -> AudioDevice?
+    {
+        var subDevices: [AudioDevice] = []
+        if let secondDevice = secondDevice {
+            subDevices.append(secondDevice)
+        }
+        return createAggregateDevice(mainDevice: mainDevice, subDevices: subDevices, named: name, uid: uid, option: nil)
+    }
+    
     @available(*, deprecated, message: "mainDevice: is preferred spelling for first argument")
     func createAggregateDevice(masterDevice: AudioDevice,
                                secondDevice: AudioDevice?,
@@ -60,6 +75,13 @@ public extension SimplyCoreAudio {
                                uid: String) -> AudioDevice?
     {
         return createAggregateDevice(mainDevice: masterDevice, secondDevice: secondDevice, named: name, uid: uid)
+    }
+
+    func createMultiOutputDevice(mainDevice: AudioDevice,
+                                 subDevices: [AudioDevice],
+                                 named name: String,
+                                 uid: String) -> AudioDevice? {
+        return createAggregateDevice(mainDevice: mainDevice, subDevices: subDevices, named: name, uid: uid, option: AggregateOption(isPrivate: false, isStacked: true))
     }
 
     /// Destroy the given audio aggregate device.

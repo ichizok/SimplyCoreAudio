@@ -43,4 +43,23 @@ public extension AudioDevice {
             return channels > 0
         }
     }
+
+    /// - Returns: *(optional)* A `String` with the audio device `UID`.
+    var mainSubDevice: AudioDevice? {
+        guard let address = validAddress(selector: kAudioAggregateDevicePropertyMainSubDevice) else { return nil }
+        guard let uid: String = getProperty(address: address) else { return nil }
+        return AudioDevice.lookup(by: uid)
+    }
+
+    @available(*, deprecated, renamed: "mainSubDevice")
+    var masterSubDevice: AudioDevice? {
+        mainSubDevice
+    }
+
+    /// - Returns: *(optional)* A `String` with the audio device `UID`.
+    var clockDevice: AudioDevice? {
+        guard let address = validAddress(selector: kAudioAggregateDevicePropertyClockDevice) else { return nil }
+        guard let uid: String = getProperty(address: address) else { return nil }
+        return AudioDevice.lookup(by: uid)
+    }
 }
