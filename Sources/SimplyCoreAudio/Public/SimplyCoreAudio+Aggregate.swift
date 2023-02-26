@@ -22,31 +22,36 @@ public extension SimplyCoreAudio {
     /// - Parameter subDevices: Audio devices.
     ///
     /// - Returns *(optional)* An aggregate `AudioDevice` if one can be created.
-    func createAggregateDevice(mainDevice: AudioDevice,
+    func createAggregateDevice(mainDevice: AudioDevice?,
                                subDevices: [AudioDevice],
                                named name: String,
                                uid: String,
                                option: AggregateOption? = nil) -> AudioDevice?
     {
-        guard let mainDeviceUID = mainDevice.uid else { return nil }
-
-        // make sure same device isn't added twice
-        let deviceUIDs = Set([mainDeviceUID] + subDevices.compactMap { $0.uid })
-        let deviceList: [[String: Any]] = deviceUIDs.map {
-            [
-                kAudioSubDeviceUIDKey: $0,
-                kAudioSubDeviceDriftCompensationKey: $0 == mainDeviceUID ? 0 : 1,
-            ]
+        // Don't accept the case that subDevices are given but mainDevice is not
+        if mainDevice == nil && !subDevices.isEmpty {
+            return nil
         }
 
-        let desc: [String: Any] = [
+        var desc: [String: Any] = [
             kAudioAggregateDeviceNameKey: name,
             kAudioAggregateDeviceUIDKey: uid,
-            kAudioAggregateDeviceSubDeviceListKey: deviceList,
-            kAudioAggregateDeviceMainSubDeviceKey: mainDeviceUID,
             kAudioAggregateDeviceIsPrivateKey: option?.isPrivate ?? false,
             kAudioAggregateDeviceIsStackedKey: option?.isStacked ?? false,
         ]
+
+        if let mainDeviceUID = mainDevice?.uid {
+            // make sure same device isn't added twice
+            let deviceUIDs = Set([mainDeviceUID] + subDevices.compactMap { $0.uid })
+            let deviceList: [[String: Any]] = deviceUIDs.map {
+                [
+                    kAudioSubDeviceUIDKey: $0,
+                    kAudioSubDeviceDriftCompensationKey: $0 == mainDeviceUID ? 0 : 1,
+                ]
+            }
+            desc[kAudioAggregateDeviceSubDeviceListKey] = deviceList
+            desc[kAudioAggregateDeviceMainSubDeviceKey] = mainDeviceUID
+        }
 
         var deviceID: AudioDeviceID = 0
         let error = AudioHardwareCreateAggregateDevice(desc as CFDictionary, &deviceID)
@@ -80,7 +85,7 @@ public extension SimplyCoreAudio {
         return createAggregateDevice(mainDevice: masterDevice, secondDevice: secondDevice, named: name, uid: uid)
     }
 
-    func createMultiOutputDevice(mainDevice: AudioDevice,
+    func createMultiOutputDevice(mainDevice: AudioDevice?,
                                  subDevices: [AudioDevice],
                                  named name: String,
                                  uid: String) -> AudioDevice? {
