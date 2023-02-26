@@ -12,8 +12,8 @@ import Foundation
 public extension AudioDevice {
     /// - Returns: `true` if this device is an aggregate one, `false` otherwise.
     var isAggregateDevice: Bool {
-        guard let aggregateDevices = ownedAggregateDevices else { return false }
-        return !aggregateDevices.isEmpty
+        guard validAddress(selector: kAudioAggregateDevicePropertyMainSubDevice) != nil else { return false }
+        return true
     }
 
     /// All the subdevices of this aggregate device
