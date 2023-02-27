@@ -29,7 +29,7 @@ public extension AudioDevice {
             guard isAggregateDevice else { return }
 
             guard var address = validAddress(selector: kAudioAggregateDevicePropertyFullSubDeviceList) else { return }
-            let newValue = Array(Set((newValue ?? []).compactMap { $0.uid }))
+            let newValue = (newValue ?? []).compactMap { $0.uid }.unique()
 
             let size = UInt32(MemoryLayout<CFArray>.size)
             var value = newValue as CFArray
