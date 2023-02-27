@@ -20,8 +20,20 @@ public extension AudioDevice {
     ///
     /// - Returns: An array of `AudioDevice` objects.
     var ownedAggregateDevices: [AudioDevice]? {
-        guard let ownedObjectIDs = ownedObjectIDs else { return nil }
-        return ownedObjectIDs.compactMap { AudioDevice.lookup(by: $0) }
+        get {
+            guard let ownedObjectIDs = ownedObjectIDs else { return nil }
+            return ownedObjectIDs.compactMap { AudioDevice.lookup(by: $0) }
+        }
+
+        set {
+            guard var address = validAddress(selector: kAudioAggregateDevicePropertyFullSubDeviceList) else { return }
+            let newValue = Array(Set((newValue ?? []).compactMap { $0.uid }))
+
+            let size = UInt32(MemoryLayout<CFArray>.size)
+            var value = newValue as CFArray
+
+            let _ = AudioObjectSetPropertyData(objectID, &address, UInt32(0), nil, size, &value)
+        }
     }
 
     /// All the subdevices of this aggregate device that support input
@@ -46,9 +58,20 @@ public extension AudioDevice {
 
     /// - Returns: *(optional)* A `String` with the audio device `UID`.
     var mainSubDevice: AudioDevice? {
-        guard let address = validAddress(selector: kAudioAggregateDevicePropertyMainSubDevice) else { return nil }
-        guard let uid: String = getProperty(address: address) else { return nil }
-        return AudioDevice.lookup(by: uid)
+        get {
+            guard let address = validAddress(selector: kAudioAggregateDevicePropertyMainSubDevice) else { return nil }
+            guard let uid: String = getProperty(address: address) else { return nil }
+            return AudioDevice.lookup(by: uid)
+        }
+
+        set {
+            guard let address = validAddress(selector: kAudioAggregateDevicePropertyMainSubDevice) else { return }
+            guard let uid = newValue?.uid else { return }
+            if !ownedAggregateDevices!.contains(where: { $0.uid == uid }) {
+                ownedAggregateDevices! += [newValue!]
+            }
+            let _ = setProperty(address: address, value: uid)
+        }
     }
 
     @available(*, deprecated, renamed: "mainSubDevice")
@@ -58,8 +81,19 @@ public extension AudioDevice {
 
     /// - Returns: *(optional)* A `String` with the audio device `UID`.
     var clockDevice: AudioDevice? {
-        guard let address = validAddress(selector: kAudioAggregateDevicePropertyClockDevice) else { return nil }
-        guard let uid: String = getProperty(address: address) else { return nil }
-        return AudioDevice.lookup(by: uid)
+        get {
+            guard let address = validAddress(selector: kAudioAggregateDevicePropertyClockDevice) else { return nil }
+            guard let uid: String = getProperty(address: address) else { return nil }
+            return AudioDevice.lookup(by: uid)
+        }
+
+        set {
+            guard let address = validAddress(selector: kAudioAggregateDevicePropertyClockDevice) else { return }
+            guard let uid = newValue?.uid else { return }
+            if !ownedAggregateDevices!.contains(where: { $0.uid == uid }) {
+                ownedAggregateDevices! += [newValue!]
+            }
+            let _ = setProperty(address: address, value: uid)
+        }
     }
 }
