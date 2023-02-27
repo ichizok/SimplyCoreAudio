@@ -26,6 +26,8 @@ public extension AudioDevice {
         }
 
         set {
+            guard isAggregateDevice else { return }
+
             guard var address = validAddress(selector: kAudioAggregateDevicePropertyFullSubDeviceList) else { return }
             let newValue = Array(Set((newValue ?? []).compactMap { $0.uid }))
 
@@ -65,6 +67,8 @@ public extension AudioDevice {
         }
 
         set {
+            guard isAggregateDevice else { return }
+
             guard let address = validAddress(selector: kAudioAggregateDevicePropertyMainSubDevice) else { return }
             guard let uid = newValue?.uid else { return }
             if !ownedAggregateDevices!.contains(where: { $0.uid == uid }) {
@@ -88,6 +92,8 @@ public extension AudioDevice {
         }
 
         set {
+            guard isAggregateDevice else { return }
+
             guard let address = validAddress(selector: kAudioAggregateDevicePropertyClockDevice) else { return }
             guard let uid = newValue?.uid else { return }
             if !ownedAggregateDevices!.contains(where: { $0.uid == uid }) {
