@@ -48,8 +48,6 @@ public extension AudioDevice {
     /// - Returns: An array of `AudioDevice` objects.
     var allSubDevices: [AudioDevice]? {
         get {
-            guard isAggregateDevice else { return nil }
-
             guard var address = validAddress(selector: kAudioAggregateDevicePropertyFullSubDeviceList) else { return nil }
 
             var size = UInt32(MemoryLayout<CFArray>.size)
@@ -62,8 +60,6 @@ public extension AudioDevice {
         }
 
         set {
-            guard isAggregateDevice else { return }
-
             guard var address = validAddress(selector: kAudioAggregateDevicePropertyFullSubDeviceList) else { return }
 
             let size = UInt32(MemoryLayout<CFArray>.size)
@@ -102,8 +98,6 @@ public extension AudioDevice {
         }
 
         set {
-            guard isAggregateDevice else { return }
-
             guard let address = validAddress(selector: kAudioAggregateDevicePropertyMainSubDevice),
                   let uid = newValue?.uid else { return }
 
@@ -130,8 +124,6 @@ public extension AudioDevice {
         }
 
         set {
-            guard isAggregateDevice else { return }
-
             guard let address = validAddress(selector: kAudioAggregateDevicePropertyClockDevice),
                   let uid = newValue?.uid else { return }
 
