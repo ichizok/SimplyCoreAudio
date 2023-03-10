@@ -54,9 +54,12 @@ public extension AudioDevice {
             var value: CFArray? = nil
 
             let status = AudioObjectGetPropertyData(objectID, &address, UInt32(0), nil, &size, &value)
-            guard noErr == status, let value = value else { return nil }
+            guard noErr == status, let subDevices = ownedAggregateDevices else { return nil }
 
-            return ((value as NSArray) as! [String]).compactMap { AudioDevice.lookup(by: $0) }
+            let uids = (value! as NSArray) as! [String]
+            return uids.compactMap { uid in
+                subDevices.first(where: { $0.uid == uid })
+            }
         }
 
         set {
