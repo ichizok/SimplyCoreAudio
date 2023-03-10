@@ -65,10 +65,9 @@ public extension AudioDevice {
             guard isAggregateDevice else { return }
 
             guard var address = validAddress(selector: kAudioAggregateDevicePropertyFullSubDeviceList) else { return }
-            let newValue = (newValue ?? []).compactMap { $0.uid }.unique()
 
             let size = UInt32(MemoryLayout<CFArray>.size)
-            var value = newValue as CFArray
+            var value = (newValue?.compactMap { $0.uid }.unique() ?? []) as CFArray
 
             let _ = AudioObjectSetPropertyData(objectID, &address, UInt32(0), nil, size, &value)
         }
@@ -97,16 +96,16 @@ public extension AudioDevice {
     /// - Returns: *(optional)* A `String` with the audio device `UID`.
     var mainSubDevice: AudioDevice? {
         get {
-            guard let address = validAddress(selector: kAudioAggregateDevicePropertyMainSubDevice) else { return nil }
-            guard let uid: String = getProperty(address: address) else { return nil }
+            guard let address = validAddress(selector: kAudioAggregateDevicePropertyMainSubDevice),
+                  let uid: String = getProperty(address: address) else { return nil }
             return AudioDevice.lookup(by: uid)
         }
 
         set {
             guard isAggregateDevice else { return }
 
-            guard let address = validAddress(selector: kAudioAggregateDevicePropertyMainSubDevice) else { return }
-            guard let uid = newValue?.uid else { return }
+            guard let address = validAddress(selector: kAudioAggregateDevicePropertyMainSubDevice),
+                  let uid = newValue?.uid else { return }
 
             if allSubDevices == nil {
                 allSubDevices = [newValue!]
@@ -125,16 +124,16 @@ public extension AudioDevice {
     /// - Returns: *(optional)* A `String` with the audio device `UID`.
     var clockDevice: AudioDevice? {
         get {
-            guard let address = validAddress(selector: kAudioAggregateDevicePropertyClockDevice) else { return nil }
-            guard let uid: String = getProperty(address: address) else { return nil }
+            guard let address = validAddress(selector: kAudioAggregateDevicePropertyClockDevice),
+                  let uid: String = getProperty(address: address) else { return nil }
             return AudioDevice.lookup(by: uid)
         }
 
         set {
             guard isAggregateDevice else { return }
 
-            guard let address = validAddress(selector: kAudioAggregateDevicePropertyClockDevice) else { return }
-            guard let uid = newValue?.uid else { return }
+            guard let address = validAddress(selector: kAudioAggregateDevicePropertyClockDevice),
+                  let uid = newValue?.uid else { return }
 
             if allSubDevices == nil {
                 allSubDevices = [newValue!]
