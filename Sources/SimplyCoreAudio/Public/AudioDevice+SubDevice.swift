@@ -13,6 +13,7 @@ public extension AudioDevice {
             guard let address = validAddress(selector: kAudioSubDevicePropertyExtraLatency) else { return nil }
             return getProperty(address: address)
         }
+
         set {
             guard let address = validAddress(selector: kAudioSubDevicePropertyExtraLatency) else { return }
             _ = setProperty(address: address, value: newValue)
@@ -24,6 +25,7 @@ public extension AudioDevice {
             guard let address = validAddress(selector: kAudioSubDevicePropertyDriftCompensation) else { return nil }
             return getProperty(address: address)
         }
+
         set {
             guard let address = validAddress(selector: kAudioSubDevicePropertyDriftCompensation) else { return }
             _ = setProperty(address: address, value: newValue)
@@ -35,6 +37,7 @@ public extension AudioDevice {
             guard let address = validAddress(selector: kAudioSubDevicePropertyDriftCompensationQuality) else { return nil }
             return getProperty(address: address)
         }
+
         set {
             guard let address = validAddress(selector: kAudioSubDevicePropertyDriftCompensationQuality) else { return }
             _ = setProperty(address: address, value: newValue)

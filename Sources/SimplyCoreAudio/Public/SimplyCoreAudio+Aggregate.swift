@@ -54,10 +54,10 @@ public extension SimplyCoreAudio {
         }
 
         var deviceID: AudioDeviceID = 0
-        let error = AudioHardwareCreateAggregateDevice(desc as CFDictionary, &deviceID)
+        let status = AudioHardwareCreateAggregateDevice(desc as CFDictionary, &deviceID)
 
-        guard error == noErr else {
-            os_log("Failed creating aggregate device with error: %d.", log: .default, type: .debug, error)
+        guard noErr == status else {
+            os_log("Failed creating aggregate device with error: %d.", log: .default, type: .debug, status)
             return nil
         }
 
@@ -73,7 +73,10 @@ public extension SimplyCoreAudio {
         if let secondDevice = secondDevice {
             subDevices.append(secondDevice)
         }
-        return createAggregateDevice(mainDevice: mainDevice, subDevices: subDevices, named: name, uid: uid)
+        return createAggregateDevice(mainDevice: mainDevice,
+                                     subDevices: subDevices,
+                                     named: name,
+                                     uid: uid)
     }
     
     @available(*, deprecated, message: "mainDevice: is preferred spelling for first argument")
@@ -82,14 +85,21 @@ public extension SimplyCoreAudio {
                                named name: String,
                                uid: String) -> AudioDevice?
     {
-        return createAggregateDevice(mainDevice: masterDevice, secondDevice: secondDevice, named: name, uid: uid)
+        return createAggregateDevice(mainDevice: masterDevice,
+                                     secondDevice: secondDevice,
+                                     named: name,
+                                     uid: uid)
     }
 
     func createMultiOutputDevice(mainDevice: AudioDevice?,
                                  subDevices: [AudioDevice],
                                  named name: String,
                                  uid: String) -> AudioDevice? {
-        return createAggregateDevice(mainDevice: mainDevice, subDevices: subDevices, named: name, uid: uid, option: AggregateOption(isPrivate: false, isStacked: true))
+        return createAggregateDevice(mainDevice: mainDevice,
+                                     subDevices: subDevices,
+                                     named: name,
+                                     uid: uid,
+                                     option: AggregateOption(isPrivate: false, isStacked: true))
     }
 
     /// Destroy the given audio aggregate device.
