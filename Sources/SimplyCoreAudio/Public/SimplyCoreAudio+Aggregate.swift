@@ -42,7 +42,7 @@ public extension SimplyCoreAudio {
 
         if let mainDeviceUID = mainDevice?.uid {
             // Dedup given devices
-            let deviceUIDs = Set([mainDeviceUID] + subDevices.compactMap { $0.uid })
+            let deviceUIDs = ([mainDeviceUID] + subDevices.compactMap { $0.uid }).unique()
             let deviceList: [[String: Any]] = deviceUIDs.map {
                 [
                     kAudioSubDeviceUIDKey: $0,
